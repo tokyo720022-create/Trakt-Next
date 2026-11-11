@@ -4,7 +4,7 @@ Thank you to everyone who helped build Trakt Next.
 
 | Contributor | Role |
 | --- | --- |
-| [tokyo720022-create](Hariharasuthan K) | Owner. Product direction, design references, testing |
+| Hariharasuthan K | Owner. Product direction, design references, testing |
 | [Claude](https://www.anthropic.com/claude) (Anthropic) | AI assistant. Code, GitHub workflows, tests and documentation |
 
 ## How to contribute
