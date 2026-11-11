@@ -1,0 +1,13 @@
+<div class="sheet" id="fsheet" hidden>
+  <div class="sheethead"><button class="mini" id="fsBack">← Back</button><b>Filter</b></div>
+  <label class="chk"><input type="checkbox" id="fsPersist"> Persist filter on app restart</label>
+  <label for="fsSort">Sort by</label>
+  <select id="fsSort"><option value="UPDATED">Last updated</option><option value="TITLE">Title (A to Z)</option><option value="RATING">My rating</option><option value="AVG">Average rating</option><option value="YEAR">Release year (newest)</option><option value="PLAYS">Plays</option></select>
+  <label>Release year</label>
+  <div class="two"><input id="fsYFrom" inputmode="numeric" placeholder="From"><input id="fsYTo" inputmode="numeric" placeholder="To"></div>
+  <label for="fsRating">Average rating (minimum, 0 to 10)</label>
+  <input id="fsRating" inputmode="decimal" placeholder="0 to 10">
+  <label>Genres (tap to include, tap again to exclude)</label>
+  <div class="row" id="fsGenres"></div>
+  <div class="sheetbar"><button class="go alt" id="fsReset">Reset</button><button class="go" id="fsApply">Apply</button></div>
+</div>

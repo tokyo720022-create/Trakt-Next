@@ -2,32 +2,41 @@
 
 An Android app that tracks Movies, TV Shows and Anime in separate sections and keeps Trakt, Simkl and AniList in sync.
 
-Built with plain JavaScript (ES modules) wrapped in [Capacitor](https://capacitorjs.com). No bundler.
+Built with plain JavaScript wrapped in [Capacitor](https://capacitorjs.com). No bundler: `boot.js` loads the screens and scripts in order.
 
-## Sections and sync routes
+## Screens
 
-Trakt is the main account. A change made in the app goes to Trakt and is then sent on:
+| Tab | What it does |
+| --- | --- |
+| Home | Continue Watching (tick the next episode), Start Watching (your watchlist), daily streak, Calendar, Recommended, History. Switch between Media, Anime, Shows and Movies |
+| Anime / Shows / Movies | Your list with status chips (All, Watched, Watchlist, Rated), Search, Filter, Customise and Custom lists |
+| Discover | Trending, Popular, Anticipated, For you and search |
+| Profile | Account, counts per section, sync routes, log out |
 
-| Section   | Synced to                  |
-| --------- | -------------------------- |
-| Movies    | Trakt, Simkl               |
-| TV Shows  | Trakt, Simkl               |
-| Anime     | Trakt, AniList, Simkl      |
+Tap any title to change it on Trakt: watchlist, watched (movies), rating, add to a custom list. Anime is any title Trakt gives the `anime` genre.
 
-An item counts as anime when Trakt gives it the `anime` genre.
+## Sync routes
+
+| Section | Synced to |
+| --- | --- |
+| Movies | Trakt, Simkl |
+| TV Shows | Trakt, Simkl |
+| Anime | Trakt, AniList, Simkl |
+
+Trakt works now. Simkl and AniList are not connected yet.
 
 ## Status
 
-Version 0.1, first model.
+Version 0.2.
 
 - [x] Log in with Trakt (OAuth with PKCE, no client secret)
-- [x] Movies / TV Shows / Anime sections with history
-- [x] Bottom navigation, Profile screen
+- [x] Home, section lists, Discover, Profile
+- [x] Search, Filter, Customise, Custom lists
+- [x] Watchlist, watched, rating, custom list changes sent to Trakt
 - [ ] Simkl login and sync
 - [ ] AniList login and sync
-- [ ] Add and edit entries (ratings, history, watchlist) from the app
+- [ ] Episode-by-episode tracking inside a show
 - [ ] Offline queue for changes that could not be sent
-- [ ] Progress, Library and Social screens
 
 ## Project structure
 
@@ -35,27 +44,28 @@ Version 0.1, first model.
 .github/workflows/   build-apk.yml, unpack-site.yml
 android-signing/     patch-android.sh, verify-apk.sh, fingerprint.txt
 resources/           icon.png (app icon and splash source)
-tests/               check-structure.js
-css/                 style.css
+tests/               check-structure.js, unit/
+css/                 base.css, components.css, screens.css
+views/
+  shell/             header, tabs
+  screens/           login, home, lists, discover, profile
+  sheets/            filter, customise, customlists, streak, item
 js/
-  app.js             entry point
-  core/              Config, Storage, HttpClient, MediaKind
-  services/          TraktAuth, TraktApi, SimklApi
-  views/             BaseView, LoginView, HomeView, ProfileView
-  ui/                BottomNav
-  utils/             dom, pkce
+  core/              core, auth, trakt, tabs, start
+  features/          cards, lists, list-options, customlists, item-sheet,
+                     discover, streak, home, profile
 index.html
+boot.js
 package.json
 capacitor.config.json
+PRIVACY.md  CONTRIBUTORS.md  LICENSE  README.md
 ```
-
-Every screen is a subclass of `BaseView`. Services are created once in `js/app.js` and passed to the views.
 
 ## Setup
 
 ### 1. Trakt developer app
 
-Create an app at [developer.trakt.tv](https://developer.trakt.tv/apps) with:
+Create an app at [developer.trakt.tv](https://developer.trakt.tv/apps):
 
 - App type: Development (switch to Production when publishing)
 - Redirect URI: `traktnext://callback`
@@ -64,36 +74,34 @@ The app signs in with PKCE, so Trakt does not issue a client secret.
 
 ### 2. GitHub secrets
 
-In the repository, open Settings, Secrets and variables, Actions, and add:
+Repository Settings, Secrets and variables, Actions:
 
-| Secret                      | What it is                                         |
-| --------------------------- | -------------------------------------------------- |
-| `TRAKT_CLIENT_ID`           | Client ID of your Trakt app                        |
-| `SIMKL_CLIENT_ID`           | Client ID of your Simkl app (when Simkl is added)  |
-| `ANDROID_KEYSTORE_BASE64`   | Your signing keystore, base64 encoded on one line  |
-| `ANDROID_KEYSTORE_PASSWORD` | Password of that keystore                          |
+| Secret | What it is |
+| --- | --- |
+| `TRAKT_CLIENT_ID` | Client ID of your Trakt app |
+| `SIMKL_CLIENT_ID` | Client ID of your Simkl app (when Simkl is added) |
+| `ANDROID_KEYSTORE_BASE64` | Your signing keystore, base64 encoded on one line |
+| `ANDROID_KEYSTORE_PASSWORD` | Password of that keystore |
 
 Keep the keystore and its password private and backed up. Never commit them. If the key is lost, new builds cannot be installed over old ones.
-
-### 3. Signing fingerprint
 
 `android-signing/fingerprint.txt` holds the SHA-256 fingerprint of your signing key. The build fails if the APK is signed with a different key.
 
 ## Build and release
 
-- **Build APK** runs on every push to `main` (or by hand). It runs the quick checks, builds a signed APK and publishes it as a new GitHub release. The login deep link `traktnext://` is added to the Android manifest and Android backup is turned off.
-- **Unpack site.zip**: push a `site.zip` with the app folders (`index.html`, `css`, `js`, `tests`) and it is unpacked into the repo, then a build starts. It refuses `package.json`, `capacitor.config.json`, `android-signing/` and workflow files, which must be changed by hand.
-
-Install a release APK over the previous one. Same signing key and a rising version code make that work.
+- **Build APK** runs on every push to `main` (or by hand). It runs the quick checks, builds a signed APK and publishes it as a new GitHub release.
+- **Unpack site.zip**: push a `site.zip` with the app folders (`index.html`, `boot.js`, `css`, `js`, `views`, `tests` and the docs). A folder that is in the zip replaces the same folder in the repo, so old files never pile up. It refuses `package.json`, `capacitor.config.json`, `android-signing/` and workflow files, which are changed by hand.
 
 ## Privacy
 
-Login tokens are stored in the app's own storage only. Android backup is turned off so they are not copied off the phone.
+See [PRIVACY.md](PRIVACY.md). Login tokens stay in the app's own storage, and Android backup is off.
 
-## Credits
+## Contributing
 
-This product uses the Trakt API but is not endorsed or certified by Trakt. Trakt, Simkl and AniList are trademarks of their owners.
+See [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
 ## License
 
 [MIT](LICENSE)
+
+_Trakt Next uses the Trakt API but is not endorsed or certified by Trakt. Trakt, Simkl and AniList are trademarks of their owners._

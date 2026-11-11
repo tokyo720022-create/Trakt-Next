@@ -1,0 +1,19 @@
+:root { --bg: #0a0714; --card: #16112a; --card2: #1f1838; --text: #f1eefc; --muted: #9a93b8; --accent: #ed1c24; --line: #2a2342; --violet: #7355e0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 16px/1.4 system-ui, sans-serif; padding: env(safe-area-inset-top) 16px calc(96px + env(safe-area-inset-bottom)); }
+[hidden] { display: none !important; }
+.top { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; }
+.top h1 { font-size: 22px; margin: 0; }
+.pill { background: var(--card); border-radius: 999px; padding: 8px 14px; font-size: 14px; }
+h2 { font-size: 26px; margin: 4px 0; }
+.sub, .muted { color: var(--muted); font-size: 14px; }
+.tabs { position: fixed; left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); display: flex; justify-content: space-around; background: var(--card); border-radius: 22px; padding: 6px; z-index: 10; }
+.tab { background: none; border: 0; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px; border-radius: 16px; font-size: 11px; }
+.tab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tab[aria-pressed="true"] { background: var(--card2); color: var(--text); }
+#boot { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 50; }
+#boot.out { opacity: 0; transition: opacity .35s; }
+.boottitle { font-size: 30px; font-weight: 700; }
+.bootbar { width: 160px; height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.bootbar i { display: block; height: 100%; width: 6%; background: var(--accent); transition: width .2s; }

@@ -1,0 +1,17 @@
+<section id="discover" hidden>
+    <div class="dsearch"><input id="dq" type="search" autocomplete="off" enterkeyhint="search" placeholder="Search Trakt"></div>
+    <div class="chips" id="dKinds">
+      <button class="chip" data-k="anime" aria-pressed="true">Anime</button>
+      <button class="chip" data-k="shows" aria-pressed="false">TV Shows</button>
+      <button class="chip" data-k="movies" aria-pressed="false">Movies</button>
+    </div>
+    <div class="dtiles" id="dTiles">
+      <button class="dtile" data-mode="trending" aria-pressed="true"><span>🔥</span><span>Trending</span></button>
+      <button class="dtile" data-mode="popular" aria-pressed="false"><span>⭐</span><span>Popular</span></button>
+      <button class="dtile" data-mode="anticipated" aria-pressed="false"><span>⏳</span><span>Anticipated</span></button>
+      <button class="dtile" data-mode="foryou" aria-pressed="false"><span>✨</span><span>For you</span></button>
+    </div>
+    <h3 class="sec" id="dTitle"></h3>
+    <div id="dlist" aria-live="polite"></div>
+    <button class="go alt" id="dmore" hidden>Load more</button>
+  </section>
