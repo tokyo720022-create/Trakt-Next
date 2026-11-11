@@ -61,6 +61,13 @@ jobs:
           for f in index.html boot.js config.js css js views assets; do
             [ -e "$f" ] && cp -r "$f" www/ || true
           done
+      - name: Write config.js from your GitHub secrets (Trakt and Simkl keys)
+        env:
+          TRAKT_CLIENT_ID: ${{ secrets.TRAKT_CLIENT_ID }}
+          SIMKL_CLIENT_ID: ${{ secrets.SIMKL_CLIENT_ID }}
+        run: |
+          test -n "$TRAKT_CLIENT_ID" || { echo "Add the TRAKT_CLIENT_ID secret in the repo settings (Secrets and variables, Actions)."; exit 1; }
+          node -e "require('fs').writeFileSync('www/config.js','window.TRAKT_CONFIG='+JSON.stringify({traktClientId:process.env.TRAKT_CLIENT_ID,simklClientId:process.env.SIMKL_CLIENT_ID||''}))"
       - run: npx cap add android
       - name: Generate app icon and splash screen
         run: npx --yes @capacitor/assets@3 generate --android --assetPath resources --iconBackgroundColor '#000000' --iconBackgroundColorDark '#000000' --splashBackgroundColor '#0A0714' --splashBackgroundColorDark '#0A0714' || echo "Icon generation failed. The build continues with the default icon."
