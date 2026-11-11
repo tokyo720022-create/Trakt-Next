@@ -24,5 +24,5 @@ export class TraktApi {
   }
 
   getSettings() { return this.get('/users/settings'); }
-  getHistory(limit = 10) { return this.get('/sync/history?limit=' + limit); }
+  getHistory(limit = 10) { return this.get('/sync/history?extended=full&limit=' + limit); }
 }

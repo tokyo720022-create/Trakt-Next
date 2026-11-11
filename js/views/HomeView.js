@@ -1,26 +1,36 @@
 import { BaseView } from './BaseView.js';
+import { KINDS, kindOf } from '../core/MediaKind.js';
 import { el } from '../utils/dom.js';
 
+// Home: one chip per section (Movies, TV Shows, Anime), each with its own history.
 export class HomeView extends BaseView {
   async render(root) {
-    const account = this.card('Trakt account');
-    const recent = this.card('Recently watched');
-    const simkl = this.card('Simkl sync');
-    simkl.append(el('span', 'Coming in the next version.', 'muted'));
-    root.append(account, recent, simkl);
+    const chips = el('div', undefined, 'chips');
+    const body = el('div');
+    root.append(chips, body);
 
-    try {
-      const me = await this.ctx.trakt.getSettings();
-      account.append(el('div', me.user.username));
-      recent.append(this.historyList(await this.ctx.trakt.getHistory(10)));
-    } catch (err) {
-      account.append(el('div', 'Could not load your data: ' + err.message));
-      recent.remove();
-    }
+    let items;
+    try { items = await this.ctx.trakt.getHistory(50); }
+    catch (err) { body.append(el('div', 'Could not load your history: ' + err.message, 'card')); return; }
+
+    const draw = () => {
+      const current = this.ctx.state.kind;
+      chips.replaceChildren();
+      for (const [id, { label }] of Object.entries(KINDS)) {
+        const count = items.filter((i) => kindOf(i) === id).length;
+        const chip = el('button', `${label} · ${count}`, 'chip' + (id === current ? ' active' : ''));
+        chip.onclick = () => { this.ctx.state.kind = id; draw(); };
+        chips.append(chip);
+      }
+      const card = this.card('History');
+      card.append(this.historyList(items.filter((i) => kindOf(i) === current)));
+      body.replaceChildren(el('small', 'Changes here also go to: ' + KINDS[current].syncTo.join(' and '), 'muted'), card);
+    };
+    draw();
   }
 
   historyList(items) {
-    if (!items.length) return el('span', 'No history yet.', 'muted');
+    if (!items.length) return el('span', 'Nothing here yet.', 'muted');
     const list = el('ul');
     for (const item of items) {
       const li = el('li', this.titleOf(item));
