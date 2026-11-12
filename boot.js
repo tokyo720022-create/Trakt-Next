@@ -1,17 +1,18 @@
 /* boot.js: loads the screen files, then the script files in order, then the app starts. */
 (function () {
-  const REV = '0.3.0-r1'; // change this whenever files change, so a phone never mixes old and new files
+  const REV = '0.4.0-r1'; // change this whenever files change, so a phone never mixes old and new files
   const VIEWS = [
     ['screens', 'views/shell/header.html'], ['screens', 'views/shell/tabs.html'],
     ['screens', 'views/screens/login.html'], ['screens', 'views/screens/home.html'], ['screens', 'views/screens/lists.html'],
     ['screens', 'views/screens/discover.html'], ['screens', 'views/screens/profile.html'],
     ['overlays', 'views/sheets/filter.html'], ['overlays', 'views/sheets/customise.html'], ['overlays', 'views/sheets/customlists.html'],
-    ['overlays', 'views/sheets/streak.html'], ['overlays', 'views/sheets/history.html'], ['overlays', 'views/sheets/detail.html'],
+    ['overlays', 'views/sheets/streak.html'], ['overlays', 'views/sheets/history.html'], ['overlays', 'views/sheets/watching.html'], ['overlays', 'views/sheets/detail.html'],
+    ['overlays', 'views/sheets/episode.html'], ['overlays', 'views/sheets/mark.html'],
   ];
   const SCRIPTS = [
     'js/core/core.js', 'js/core/auth.js', 'js/core/trakt.js', 'js/core/tabs.js',
     'js/features/cards.js', 'js/features/lists.js', 'js/features/list-options.js', 'js/features/customlists.js',
-    'js/features/detail.js', 'js/features/detail-extras.js', 'js/features/episodes.js', 'js/features/history.js',
+    'js/features/detail.js', 'js/features/detail-extras.js', 'js/features/episodes.js', 'js/features/episode-screen.js', 'js/features/mark-sheet.js', 'js/features/watching.js', 'js/features/history.js',
     'js/features/discover.js', 'js/features/streak.js', 'js/features/home.js',
     'js/features/profile.js', 'js/core/start.js',
   ];

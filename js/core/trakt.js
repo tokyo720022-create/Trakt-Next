@@ -92,8 +92,9 @@ class TraktApi {
     (await this.tracked(item)).flags.watchlist = on;
   }
 
-  async setWatched(item, on) { // movies only; a whole show is tracked episode by episode
-    await this.call('/sync/history' + (on ? '' : '/remove'), 'POST', this.body(item));
+  // at: when it was watched (an ISO date), or nothing for "just now". Movies only; a show is tracked episode by episode.
+  async setWatched(item, on, at) {
+    await this.call('/sync/history' + (on ? '' : '/remove'), 'POST', this.body(item, on && at ? { watched_at: at } : {}));
     const t = await this.tracked(item);
     t.flags.watched = on;
     t.plays = on ? Math.max(1, t.plays) : 0;
@@ -110,6 +111,13 @@ class TraktApi {
     await this.call('/sync/history', 'POST', { episodes: [{ ids: { trakt: episode.ids.trakt } }] });
     this.memos.delete('recent');
     this.memos.delete('activity');
+  }
+
+  // Marks the next episode of a row watched and returns the row with fresh numbers, or null when nothing is left.
+  async advance(row) {
+    await this.markEpisode(row.next);
+    const fresh = await this.progress(row.show);
+    return fresh && fresh.left > 0 ? Object.assign(row, fresh) : null;
   }
 
   // ---- custom lists ----
@@ -148,14 +156,14 @@ class TraktApi {
 
   async progress(show) {
     const p = await this.call(`/shows/${show.ids.trakt}/progress/watched`);
-    return p.next_episode ? { next: p.next_episode, left: Math.max(0, (p.aired || 0) - (p.completed || 0)) } : null;
+    return p.next_episode ? { next: p.next_episode, left: Math.max(0, (p.aired || 0) - (p.completed || 0)), aired: p.aired || 0, completed: p.completed || 0 } : null;
   }
 
   // Shows from the latest history that still have episodes left.
-  async upNext(recent) {
+  async upNext(recent, max = 10) {
     const seen = new Map();
     for (const r of recent) if (r.type === 'episode' && r.show && !seen.has(r.show.ids.trakt)) seen.set(r.show.ids.trakt, r.show);
-    const rows = await Promise.all([...seen.values()].slice(0, 10).map(async (show) => {
+    const rows = await Promise.all([...seen.values()].slice(0, max).map(async (show) => {
       try { const p = await this.progress(show); return p && p.left > 0 ? { show, ...p } : null; } catch (e) { return null; }
     }));
     return rows.filter(Boolean);
@@ -191,8 +199,9 @@ class TraktApi {
   seasons(show) { return this.memo('seasons:' + show.ids.trakt, () => this.call(`/shows/${show.ids.trakt}/seasons?extended=full,episodes,images`), 600000); }
   showProgress(show) { return this.call(`/shows/${show.ids.trakt}/progress/watched`); }
 
-  async setEpisode(show, episode, on) {
-    await this.call('/sync/history' + (on ? '' : '/remove'), 'POST', { episodes: [{ ids: { trakt: episode.ids.trakt } }] });
+  async setEpisode(show, episode, on, at) {
+    const entry = { ids: { trakt: episode.ids.trakt }, ...(on && at ? { watched_at: at } : {}) };
+    await this.call('/sync/history' + (on ? '' : '/remove'), 'POST', { episodes: [entry] });
     this.memos.delete('recent');
     this.memos.delete('activity');
     if (on) (await this.tracked({ type: 'show', show })).flags.watched = true;
@@ -204,6 +213,11 @@ class TraktApi {
     this.memos.delete('activity');
     if (on) (await this.tracked({ type: 'show', show })).flags.watched = true;
   }
+
+  // "Now watching": tells Trakt you are watching it right now.
+  checkin(kind, media) { return this.call('/checkin', 'POST', { [kind]: { ids: { trakt: media.ids.trakt } } }); }
+
+  episodePeople(show, ep) { return this.memo(`epeople:${show.ids.trakt}:${ep.season}:${ep.number}`, () => this.call(`/shows/${show.ids.trakt}/seasons/${ep.season}/episodes/${ep.number}/people`), 600000); }
 
   // ---- history ----
   history(page = 1, limit = 40) { return this.call(`/sync/history?${TraktApi.EXT}&page=${page}&limit=${limit}`); }

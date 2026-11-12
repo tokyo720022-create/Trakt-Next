@@ -1,0 +1,20 @@
+<div class="sheet backdrop" id="msheet" hidden>
+  <div class="panel">
+    <div class="sheethead"><button class="mini" id="mkBack">Cancel</button></div>
+    <h2 id="mkTitle"></h2>
+    <div class="sub" id="mkSub"></div>
+    <div class="opts">
+      <button class="opt" id="mkNow"><span>👁</span> NOW WATCHING</button>
+      <button class="opt" id="mkJust"><span>✓</span> JUST NOW</button>
+      <button class="opt" id="mkRelease"><span>📅</span> RELEASE DATE</button>
+      <button class="opt" id="mkOther"><span>✏️</span> OTHER DATE</button>
+      <div id="mkOtherBox" hidden>
+        <label for="mkWhen">Date and time</label>
+        <input type="datetime-local" id="mkWhen">
+        <button class="go" id="mkGo" style="width:100%;margin-top:12px">Mark as Watched</button>
+      </div>
+      <button class="opt" id="mkUnknown"><span>?</span> UNKNOWN DATE</button>
+    </div>
+    <p class="sub" id="mkMsg"></p>
+  </div>
+</div>

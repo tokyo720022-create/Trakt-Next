@@ -83,3 +83,9 @@ function openLink(url) {
   const Browser = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser;
   if (Browser) Browser.open({ url }); else window.open(url, '_blank');
 }
+
+// minutes -> "2d 10h 30m"
+function fmtSpan(min) {
+  const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = Math.round(min % 60);
+  return [d ? d + 'd' : '', h ? h + 'h' : '', m || (!d && !h) ? m + 'm' : ''].filter(Boolean).join(' ');
+}

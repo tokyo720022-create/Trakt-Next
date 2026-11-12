@@ -11,6 +11,9 @@ class App {
     this.customLists = new CustomLists(this);
     this.detail = new DetailScreen(this);
     this.history = new HistoryScreen(this);
+    this.mark = new MarkSheet(this);
+    this.episodeScreen = new EpisodeScreen(this);
+    this.watching = new WatchingScreen(this);
     this.discover = new DiscoverScreen(this);
     this.streak = new StreakSheet(this);
     this.home = new HomeScreen(this);
@@ -41,6 +44,14 @@ class App {
     if (open.length) { open[open.length - 1].querySelector('.sheethead .mini').click(); return; }
     if (this.auth.isLoggedIn && this.current !== 'home') { this.tabs.select('home'); return; }
     if (capApp && capApp.exitApp) capApp.exitApp();
+  }
+
+  toast(text) {
+    const t = $('toast');
+    t.textContent = text;
+    t.hidden = false;
+    clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => { t.hidden = true; }, 2500);
   }
 
   showOnly(id) { document.querySelectorAll('#screens > section').forEach((s) => { s.hidden = s.id !== id; }); }

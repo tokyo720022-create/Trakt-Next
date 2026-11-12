@@ -1,0 +1,12 @@
+<div class="sheet" id="wsheet" hidden>
+  <div class="sheethead"><button class="mini" id="wsBack">← Back</button><b>Continue Watching</b></div>
+  <div class="chips" id="wsKinds">
+    <button class="chip" data-k="all" aria-pressed="true">Media</button>
+    <button class="chip" data-k="anime" aria-pressed="false">Anime</button>
+    <button class="chip" data-k="shows" aria-pressed="false">Shows</button>
+  </div>
+  <select id="wsSort" aria-label="Sort">
+    <option value="DEFAULT">Default</option><option value="MOST">Most episodes left</option><option value="LEAST">Fewest episodes left</option><option value="TITLE">Title (A to Z)</option>
+  </select>
+  <div id="wsList"></div>
+</div>

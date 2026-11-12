@@ -22,6 +22,7 @@ class HomeScreen {
     $('hCalKinds').onclick = (e) => { const b = e.target.closest('.chip'); if (b) { this.calChip = b.dataset.k; this.paint(); this.drawCalendar(); } };
     $('hStreak').onclick = () => app.streak.open(this.dates);
     $('hHistLink').onclick = () => app.history.open();
+    $('hContLink').onclick = () => app.watching.open();
   }
 
   paint() {

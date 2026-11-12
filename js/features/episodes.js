@@ -24,6 +24,14 @@ class EpisodeList {
 
   next() { return EpisodeList.nextUnwatched(this.seasons, this.watched); }
 
+  // Called when an episode was changed somewhere else (the episode screen).
+  apply(showId, key, on) {
+    if (!this.show || this.show.ids.trakt !== showId) return;
+    if (on) this.watched.add(key); else this.watched.delete(key);
+    this.draw();
+    this.screen.drawBar();
+  }
+
   async load(item, seq) {
     if (item.type !== 'show') return;
     this.show = item.show;
@@ -67,21 +75,26 @@ class EpisodeList {
     for (const e of eps) {
       const on = this.watched.has(e.season + ':' + e.number);
       const row = el('div', undefined, 'ep');
+      const thumb = el('div', undefined, 'epthumb');
+      setImage(thumb, imageUrl(e.images && (e.images.screenshot || e.images.thumb)), '');
       const text = el('div');
       text.style.flex = '1';
       text.append(el('div', `E${e.number} · ${e.title || 'Episode ' + e.number}`, 't'), el('div', fmtDate(e.first_aired), 'm'));
+      const open = () => this.app.episodeScreen.open(this.show, e);
+      thumb.onclick = open;
+      text.onclick = open;
       const tick = el('button', '✓', 'tick' + (on ? ' on' : ''));
       tick.setAttribute('aria-label', on ? 'Mark as not watched' : 'Mark as watched');
       tick.onclick = () => this.toggle(e);
-      row.append(text, tick);
+      row.append(thumb, text, tick);
       box.append(row);
     }
   }
 
-  async toggle(episode, on) {
+  async toggle(episode, on, at, rethrow = false) {
     const key = episode.season + ':' + episode.number;
     const want = on === undefined ? !this.watched.has(key) : on;
-    await this.save(() => this.app.trakt.setEpisode(this.show, episode, want), () => { if (want) this.watched.add(key); else this.watched.delete(key); });
+    await this.save(() => this.app.trakt.setEpisode(this.show, episode, want, at), () => { if (want) this.watched.add(key); else this.watched.delete(key); }, rethrow);
   }
 
   async setSeason(season, on) {
@@ -90,7 +103,7 @@ class EpisodeList {
     });
   }
 
-  async save(send, apply) {
+  async save(send, apply, rethrow = false) {
     $('dtMsg').textContent = 'Saving…';
     try {
       await send();
@@ -100,6 +113,6 @@ class EpisodeList {
       this.screen.drawBar();
       $('dtMsg').textContent = 'Saved to Trakt';
       this.app.lists.draw();
-    } catch (err) { $('dtMsg').textContent = 'Could not save: ' + err.message; }
+    } catch (err) { $('dtMsg').textContent = 'Could not save: ' + err.message; if (rethrow) throw err; }
   }
 }

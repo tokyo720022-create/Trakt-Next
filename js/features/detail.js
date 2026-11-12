@@ -83,13 +83,24 @@ class DetailScreen {
     bar.replaceChildren();
     const main = el('button', undefined, 'main');
     if (this.item.type === 'movie') {
-      main.textContent = this.cur.flags.watched ? '✓ Watched' : 'Mark watched';
-      main.onclick = () => this.run(() => this.app.trakt.setWatched(this.item, !this.cur.flags.watched));
+      main.textContent = this.cur.flags.watched ? '✓ Watched' : '✓ Mark as watched';
+      main.onclick = () => {
+        if (this.cur.flags.watched) { this.run(() => this.app.trakt.setWatched(this.item, false)); return; }
+        this.app.mark.open({
+          title: this.m.title, sub: 'Movie', release: this.m.released,
+          checkin: () => this.app.trakt.checkin('movie', this.m),
+          onPick: (at) => this.run(() => this.app.trakt.setWatched(this.item, true, at), undefined, true),
+        });
+      };
     } else {
       const next = this.episodes.next();
       main.textContent = !this.episodes.ready ? '…' : next ? `✓ S${next.season}E${next.number}` : 'Caught up';
       main.disabled = !next;
-      main.onclick = () => next && this.episodes.toggle(next, true);
+      main.onclick = () => next && this.app.mark.open({
+        title: this.m.title, sub: `S${next.season} • E${next.number} - ${next.title || ''}`, release: next.first_aired,
+        checkin: () => this.app.trakt.checkin('episode', next),
+        onPick: (at) => this.episodes.toggle(next, true, at, true),
+      });
     }
     const icon = (text, label, onClick, on = false) => {
       const b = el('button', text, 'ic' + (on ? ' on' : ''));
@@ -133,7 +144,8 @@ class DetailScreen {
     } catch (e) { select.append(new Option('Could not load lists', '')); }
   }
 
-  async run(change, done = 'Saved to Trakt') {
+  // rethrow: let the caller (the Mark as watched sheet) know when saving failed.
+  async run(change, done = 'Saved to Trakt', rethrow = false) {
     $('dtMsg').textContent = 'Saving…';
     try {
       await change();
@@ -141,7 +153,7 @@ class DetailScreen {
       this.paint();
       $('dtMsg').textContent = done;
       this.app.lists.draw();
-    } catch (err) { $('dtMsg').textContent = 'Could not save: ' + err.message; }
+    } catch (err) { $('dtMsg').textContent = 'Could not save: ' + err.message; if (rethrow) throw err; }
   }
 
   async share() {

@@ -12,6 +12,8 @@ Built with plain JavaScript wrapped in [Capacitor](https://capacitorjs.com). No 
 | Anime / Shows / Movies | Your list with status chips (All, Watched, Watchlist, Rated), Search, Filter, Customise and Custom lists |
 | Discover | Trending, Popular, Anticipated, For you and search |
 | Title screen | Tap any title: poster with Watched badge, rating, Watched / Watchlist / Trailer / More, 5-star rating, overview, Episodes with a tick on every episode (shows), Actors, Reviews (Popular / Recent), Related, Popular Lists, Details with stats and links |
+| Episode screen | Tap an episode: thumbnail, title, director, rating, overview, previous / next, and the check button, which opens **Mark as watched** (Now watching, Just now, Release date, Other date with a date and time picker, Unknown date) |
+| Continue Watching | Full list from Home: time left, Premiere badge, tick the next episode, sort |
 | History | Everything you watched, grouped by day, with Media / Anime / Shows / Movies chips and Remove from history |
 | Profile | Account, counts per section, sync routes, log out |
 
@@ -29,7 +31,7 @@ Trakt works now. Simkl and AniList are not connected yet.
 
 ## Status
 
-Version 0.3.
+Version 0.4.
 
 - [x] Log in with Trakt (OAuth with PKCE, no client secret)
 - [x] Home, section lists, Discover, Profile
@@ -52,11 +54,13 @@ css/                 base.css, components.css, screens.css
 views/
   shell/             header, tabs
   screens/           login, home, lists, discover, profile
-  sheets/            filter, customise, customlists, streak, history, detail
+  sheets/            filter, customise, customlists, streak, history, watching,
+                     detail, episode, mark
 js/
   core/              core, auth, trakt, tabs, start
   features/          cards, lists, list-options, customlists, detail, detail-extras,
-                     episodes, history, discover, streak, home, profile
+                     episodes, episode-screen, mark-sheet, watching, history,
+                     discover, streak, home, profile
 index.html
 boot.js
 package.json
