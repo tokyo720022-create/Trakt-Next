@@ -18,7 +18,7 @@ class WatchingScreen {
     $('wsheet').hidden = false;
     $('wsList').replaceChildren(el('p', 'Loading…', 'muted'));
     try {
-      const rows = await this.app.trakt.upNext(await this.app.trakt.recent(), 25);
+      const rows = await this.app.trakt.upNext(40);
       if (seq !== this.seq) return;
       this.rows = rows;
       this.draw();
@@ -60,7 +60,7 @@ class WatchingScreen {
     const pct = r.aired ? Math.round((r.completed / r.aired) * 100) : 0;
     const pill = el('div', undefined, 'wpill');
     pill.style.background = `linear-gradient(90deg, #000 ${pct}%, rgba(255,255,255,.14) ${pct}%)`;
-    pill.append(el('span', fmtRuntime(runtime)), el('span', `${r.left} left${runtime ? ' • ' + fmtSpan(r.left * runtime) : ''}`));
+    pill.append(el('span', fmtRuntime(runtime)), el('span', `${r.left} left${runtime || r.minutesLeft ? ' • ' + fmtSpan(r.minutesLeft || r.left * runtime) : ''}`));
     const tick = el('button', '✓', 'tick');
     tick.setAttribute('aria-label', 'Mark the next episode as watched');
     tick.onclick = () => this.advance(r, tick);

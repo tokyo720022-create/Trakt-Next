@@ -7,6 +7,8 @@ class DetailScreen {
     this.m = {};
     this.cur = { flags: {}, rating: 0 };
     this.director = '';
+    this.pills = [];
+    this.fav = false;
     this.seq = 0;
     this.extras = new DetailExtras(app, this);
     this.episodes = new EpisodeList(app, this);
@@ -36,6 +38,8 @@ class DetailScreen {
     this.item = item;
     this.m = mediaOf(item);
     this.director = '';
+    this.pills = [];
+    this.fav = false;
     this.cur = { flags: {}, rating: 0 };
     this.episodes.reset();
     $('dsheet').scrollTop = 0;
@@ -49,12 +53,16 @@ class DetailScreen {
     this.paint();
     this.fillLists();
     this.episodes.load(item, seq);
+    this.app.trakt.ratings(item).then((r) => { if (seq === this.seq) { this.pills = ratingPills(r); this.paint(); } }).catch(() => {});
+    this.app.trakt.favorites().then((set) => { if (seq === this.seq) { this.fav = set.has(this.favKey()); this.drawStars(); } }).catch(() => {});
     this.app.trakt.summary(item).catch(() => null).then((full) => {
       if (seq !== this.seq) return;
       if (full) { this.m = { ...this.m, ...full }; this.item = { type: item.type, [item.type]: this.m }; this.paint(); }
       this.extras.load(this.item, seq);
     });
   }
+
+  favKey() { return this.item.type + ':' + this.m.ids.trakt; }
 
   subline() { return this.item.type === 'show' ? this.m.network || '' : this.director ? 'Directed by ' + this.director : ''; }
 
@@ -66,13 +74,14 @@ class DetailScreen {
     const hero = $('dtHero');
     hero.replaceChildren();
     const poster = el('div', undefined, 'dposter');
-    setImage(poster, posterOf(m), (m.title || '?').charAt(0));
+    setImage(poster, posterOf(m, 'medium'), (m.title || '?').charAt(0));
     if (this.cur.flags.watched) poster.append(el('span', '✓ WATCHED', 'dwatched'));
     this.subEl = el('div', this.subline(), 'sub');
     const meta = [m.year, fmtRuntime(m.runtime), m.certification, (m.genres || []).slice(0, 2).map(cap).join(', ')].filter(Boolean).join(' • ');
     hero.append(poster, el('h2', m.title || 'Unknown'), this.subEl, el('div', meta, 'sub'));
     if (m.status) hero.append(el('div', m.status.toUpperCase(), 'dstatus'));
-    if (m.rating) hero.append(el('div', `★ ${Math.round(m.rating * 10)}%  ·  ${compact(m.votes)} votes`, 'drate'));
+    const pills = this.pills.length ? this.pills : m.rating ? ['★ ' + Math.round(m.rating * 10) + '%'] : [];
+    if (pills.length) hero.append(el('div', pills.join('   '), 'drate'));
     $('dtOverview').textContent = m.overview || m.tagline || '';
     this.drawBar();
     this.drawStars();
@@ -132,6 +141,10 @@ class DetailScreen {
       box.append(star);
     }
     if (r) box.append(el('span', stars5(r), 'sub'));
+    const heart = el('span', this.fav ? '♥' : '♡', 'st heart' + (this.fav ? ' on' : ''));
+    heart.setAttribute('aria-label', this.fav ? 'Remove from favorites' : 'Add to favorites');
+    heart.onclick = () => this.run(async () => { await this.app.trakt.setFavorite(this.item, !this.fav); this.fav = !this.fav; }, this.fav ? 'Removed from favorites' : 'Added to favorites');
+    box.append(heart);
   }
 
   async fillLists() {

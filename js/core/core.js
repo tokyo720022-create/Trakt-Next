@@ -50,11 +50,14 @@ const mediaOf = (item) => item.movie || item.show || {};
 // Trakt marks anime with the "anime" genre; everything else is a movie or a TV show.
 const kindOf = (item) => ((mediaOf(item).genres || []).includes('anime') ? 'anime' : item.type === 'movie' ? 'movies' : 'shows');
 
-function imageUrl(value) {
+// Trakt image links come without https:// and carry a size in the path (thumb, medium, original).
+function imageUrl(value, size) {
   const u = Array.isArray(value) ? value[0] : value;
-  return u ? (/^https?:/.test(u) ? u : 'https://' + u) : '';
+  if (!u) return '';
+  const url = /^https?:/.test(u) ? u : 'https://' + u;
+  return size ? url.replace(/\/(thumb|medium|original|full)\//, '/' + size + '/') : url;
 }
-const posterOf = (media) => imageUrl(media.images && media.images.poster);
+const posterOf = (media, size) => imageUrl(media.images && media.images.poster, size);
 const thumbOf = (media) => imageUrl(media.images && (media.images.thumb || media.images.fanart)) || posterOf(media);
 
 function setImage(node, url, fallbackText) {
@@ -88,4 +91,18 @@ function openLink(url) {
 function fmtSpan(min) {
   const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = Math.round(min % 60);
   return [d ? d + 'd' : '', h ? h + 'h' : '', m || (!d && !h) ? m + 'm' : ''].filter(Boolean).join(' ');
+}
+
+// The score pills of the Trakt app from a /ratings response: Trakt %, IMDb, Rotten Tomatoes (critics, audience), MAL.
+function ratingPills(r) {
+  if (!r) return [];
+  const out = [];
+  const trakt = (r.trakt && r.trakt.rating) || r.rating;
+  if (trakt) out.push('★ ' + Math.round(trakt * 10) + '%');
+  if (r.imdb && r.imdb.rating) out.push('IMDb ' + Number(r.imdb.rating).toFixed(1));
+  const rt = r.rotten_tomatoes;
+  if (rt && rt.rating) out.push('🍅 ' + Math.round(rt.rating) + '%');
+  if (rt && rt.user_rating) out.push('🍿 ' + Math.round(rt.user_rating) + '%');
+  if (r.mal && r.mal.rating) out.push('MAL ' + Number(r.mal.rating).toFixed(2));
+  return out;
 }

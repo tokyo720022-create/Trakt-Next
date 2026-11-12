@@ -19,6 +19,7 @@ class DetailExtras {
     const guard = (id, promise, draw) => promise
       .then((v) => { if (ok()) draw(v); })
       .catch((e) => { if (ok()) $(id).replaceChildren(el('p', 'Could not load: ' + e.message, 'muted')); });
+    guard('dtWatch', t.watchNow(item), (v) => this.watch(v));
     guard('dtCast', t.people(item), (p) => this.cast(p));
     this.reviews(item, seq);
     guard('dtRelated', t.related(item), (v) => this.related(v));
@@ -44,6 +45,25 @@ class DetailExtras {
     const director = (crew.directing || []).find((c) => (c.jobs || []).includes('Director'));
     if (director && this.screen.item.type === 'movie') this.screen.setDirector(director.person.name);
     this.fill('dtCast', list.slice(0, 15).map((c) => this.card(imageUrl(c.person.images && c.person.images.headshot), c.person.name, (c.characters || [])[0] || '')), 'No cast listed.');
+  }
+
+  watch(data) {
+    const box = $('dtWatch');
+    box.replaceChildren();
+    const labels = { free: 'Free', subscription: 'Streaming', cable: 'Cable', purchase: 'Rent or buy', cinema: 'In cinemas' };
+    for (const [key, label] of Object.entries(labels)) {
+      const list = Array.isArray(data[key]) ? data[key] : [];
+      if (!list.length) continue;
+      box.append(el('div', label, 'q'));
+      const row = el('div', undefined, 'links');
+      for (const s of list.slice(0, 8)) {
+        const b = el('button', cap(String(s.source).replace(/[-_]/g, ' ')), 'go alt');
+        b.onclick = () => openLink(s.link_direct || s.link);
+        row.append(b);
+      }
+      box.append(row);
+    }
+    if (!box.children.length) box.append(el('p', 'No sources found for your country.', 'muted'));
   }
 
   async reviews(item, seq) {

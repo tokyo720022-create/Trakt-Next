@@ -9,7 +9,7 @@ class HomeScreen {
     this.lib = [];
     this.up = [];
     this.rec = [];
-    this.calendarData = { shows: [], movies: [] };
+    this.calendarData = { shows: [], premieres: [], finales: [], movies: [] };
     this.dates = [];
     $('hKinds').onclick = (e) => {
       const b = e.target.closest('.chip');
@@ -38,11 +38,8 @@ class HomeScreen {
     const guard = (id, promise, then) => promise
       .then((v) => { if (seq === this.seq) then(v); })
       .catch((e) => { if (seq === this.seq) $(id).replaceChildren(el('p', 'Could not load: ' + e.message, 'muted')); });
-    guard('hHist', t.recent(), (v) => {
-      this.recent = v;
-      this.drawHistory();
-      guard('hContinue', t.upNext(v), (rows) => { this.up = rows; this.drawContinue(); });
-    });
+    guard('hHist', t.recent(), (v) => { this.recent = v; this.drawHistory(); });
+    guard('hContinue', t.upNext(20), (rows) => { this.up = rows; this.drawContinue(); });
     guard('hStart', t.library(), (v) => { this.lib = v; this.drawStart(); this.drawHistory(); });
     guard('hCal', t.calendar(), (v) => { this.calendarData = v; this.drawCalendar(); });
     t.activity().then((v) => { if (seq === this.seq) { this.dates = v; this.paintStreak(); } }).catch(() => { $('hStreakN').textContent = 'Streak'; });
@@ -120,18 +117,17 @@ class HomeScreen {
   drawCalendar() {
     const d = this.calendarData;
     const open = (item) => () => this.app.detail.open(item);
+    const typeOf = (e) => String(e.episode_type || '');
     let nodes;
     if (this.kind === 'movies') {
       nodes = d.movies.map((m) => this.card({ thumb: thumbOf(m.movie), title: m.movie.title, sub: 'Movie', badge: this.shortDate(m.released), onTap: open({ type: 'movie', movie: m.movie }) }));
     } else {
-      const isPremiere = (e) => String(e.episode_type || '').includes('premiere') || e.number === 1;
-      const isFinale = (e) => String(e.episode_type || '').includes('finale');
-      nodes = d.shows
+      const source = this.calChip === 'premiere' ? d.premieres : this.calChip === 'finale' ? d.finales : d.shows;
+      nodes = source
         .filter((r) => this.kind === 'all' || kindOf({ type: 'show', show: r.show }) === this.kind)
-        .filter((r) => this.calChip === 'all' || (this.calChip === 'premiere' ? isPremiere(r.episode) : isFinale(r.episode)))
         .map((r) => this.card({
           thumb: thumbOf(r.show), title: r.show.title, sub: this.episodeLine(r.episode),
-          badge: isPremiere(r.episode) ? 'Premiere' : isFinale(r.episode) ? 'Finale' : this.shortDate(r.first_aired),
+          badge: typeOf(r.episode).includes('premiere') ? 'Premiere' : typeOf(r.episode).includes('finale') ? 'Finale' : this.shortDate(r.first_aired),
           onTap: open({ type: 'show', show: r.show }),
         }));
     }

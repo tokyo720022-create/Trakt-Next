@@ -31,7 +31,7 @@ Trakt works now. Simkl and AniList are not connected yet.
 
 ## Status
 
-Version 0.4.
+Version 0.5.
 
 - [x] Log in with Trakt (OAuth with PKCE, no client secret)
 - [x] Home, section lists, Discover, Profile
@@ -110,5 +110,7 @@ See [CONTRIBUTORS.md](CONTRIBUTORS.md).
 ## License
 
 [MIT](LICENSE)
+
+The Trakt API shapes used here were checked against Trakt's published OpenAPI description. The official Trakt Android app (GPL-3.0) was only a read-only reference; no code, icons or text from it are copied.
 
 _Trakt Next uses the Trakt API but is not endorsed or certified by Trakt. Trakt, Simkl and AniList are trademarks of their owners._

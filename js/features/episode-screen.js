@@ -7,6 +7,7 @@ class EpisodeScreen {
     this.flat = [];
     this.watched = new Set();
     this.director = '';
+    this.pills = [];
     this.seq = 0;
     $('esBack').onclick = () => { $('esheet').hidden = true; };
     $('esPrev').onclick = () => this.step(-1);
@@ -25,12 +26,14 @@ class EpisodeScreen {
     const seq = ++this.seq;
     this.ep = episode;
     this.director = '';
+    this.pills = [];
     $('esMsg').textContent = '';
     $('esheet').scrollTop = 0;
     this.paint();
     const t = this.app.trakt;
-    const [seasons, progress, people] = await Promise.all([
+    const [seasons, progress, people, ratings] = await Promise.all([
       t.seasons(this.show).catch(() => []), t.showProgress(this.show).catch(() => null), t.episodePeople(this.show, episode).catch(() => null),
+      t.episodeRatings(this.show, episode).catch(() => null),
     ]);
     if (seq !== this.seq) return;
     this.flat = seasons.flatMap((s) => s.episodes || []).sort((a, b) => a.season - b.season || a.number - b.number);
@@ -38,6 +41,7 @@ class EpisodeScreen {
     for (const s of (progress && progress.seasons) || []) for (const e of s.episodes || []) if (e.completed) this.watched.add(s.number + ':' + e.number);
     const d = ((people && people.crew && people.crew.directing) || [])[0];
     this.director = d ? d.person.name : '';
+    this.pills = ratingPills(ratings);
     this.paint();
   }
 
@@ -60,7 +64,7 @@ class EpisodeScreen {
     $('esDirector').textContent = this.director ? 'Directed by ' + this.director : '';
     const year = e.first_aired ? new Date(e.first_aired).getFullYear() : '';
     $('esMeta').textContent = [year, fmtRuntime(e.runtime || s.runtime), s.certification, (s.genres || []).slice(0, 2).map(cap).join(', ')].filter(Boolean).join(' • ');
-    $('esRate').textContent = e.rating ? `★ ${Math.round(e.rating * 10)}%` : '';
+    $('esRate').textContent = this.pills.length ? this.pills.join('   ') : e.rating ? `★ ${Math.round(e.rating * 10)}%` : '';
     $('esOverview').textContent = e.overview || '';
     $('esPrev').disabled = i <= 0;
     $('esNext').disabled = i < 0 || i >= this.flat.length - 1;

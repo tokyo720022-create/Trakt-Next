@@ -117,7 +117,7 @@ class TraktApi {
   async advance(row) {
     await this.markEpisode(row.next);
     const fresh = await this.progress(row.show);
-    return fresh && fresh.left > 0 ? Object.assign(row, fresh) : null;
+    return fresh && fresh.left > 0 ? Object.assign(row, fresh, { minutesLeft: 0 }) : null;
   }
 
   // ---- custom lists ----
@@ -159,8 +159,22 @@ class TraktApi {
     return p.next_episode ? { next: p.next_episode, left: Math.max(0, (p.aired || 0) - (p.completed || 0)), aired: p.aired || 0, completed: p.completed || 0 } : null;
   }
 
-  // Shows from the latest history that still have episodes left.
-  async upNext(recent, max = 10) {
+  // Up Next from Trakt itself: every show you started and have not finished.
+  async upNext(limit = 30) {
+    try {
+      const raw = await this.call(`/sync/progress/up_next?${TraktApi.EXT}&limit=${limit}&include_stats=true`);
+      return raw.filter((r) => r.progress && r.progress.next_episode).map((r) => {
+        const p = r.progress;
+        return {
+          show: r.show, next: p.next_episode, aired: p.aired || 0, completed: p.completed || 0,
+          left: Math.max(0, (p.aired || 0) - (p.completed || 0)), minutesLeft: (p.stats && p.stats.minutes_left) || 0,
+        };
+      }).filter((r) => r.left > 0);
+    } catch (err) { return this.upNextFromHistory(await this.recent()); }
+  }
+
+  // Fallback: shows from the latest history that still have episodes left.
+  async upNextFromHistory(recent, max = 10) {
     const seen = new Map();
     for (const r of recent) if (r.type === 'episode' && r.show && !seen.has(r.show.ids.trakt)) seen.set(r.show.ids.trakt, r.show);
     const rows = await Promise.all([...seen.values()].slice(0, max).map(async (show) => {
@@ -173,11 +187,12 @@ class TraktApi {
     return this.memo('calendar', async () => {
       const day = new Date().toISOString().slice(0, 10);
       const x = TraktApi.EXT;
-      const [shows, movies] = await Promise.all([
-        this.call(`/calendars/my/shows/${day}/14?${x}`).catch(() => []),
-        this.call(`/calendars/my/movies/${day}/30?${x}`).catch(() => []),
+      const get = (path) => this.call(path).catch(() => []);
+      const [shows, premieres, finales, movies] = await Promise.all([
+        get(`/calendars/my/shows/${day}/14?${x}`), get(`/calendars/my/shows/premieres/${day}/14?${x}`),
+        get(`/calendars/my/shows/finales/${day}/14?${x}`), get(`/calendars/my/movies/${day}/30?${x}`),
       ]);
-      return { shows, movies };
+      return { shows, premieres, finales, movies };
     });
   }
 
@@ -193,6 +208,36 @@ class TraktApi {
   async related(item) {
     const raw = await this.memo('rel:' + this.path(item), () => this.call(`${this.path(item)}/related?${TraktApi.EXT}&limit=12`), 600000);
     return raw.map((m) => ({ type: item.type, [item.type]: m }));
+  }
+
+  // ---- scores, where to watch, favorites ----
+  ratings(item) { return this.memo('ratings:' + this.path(item), () => this.call(`${this.path(item)}/ratings`), 600000); }
+  episodeRatings(show, ep) { return this.memo(`eratings:${show.ids.trakt}:${ep.season}:${ep.number}`, () => this.call(`/shows/${show.ids.trakt}/seasons/${ep.season}/episodes/${ep.number}/ratings`), 600000); }
+
+  // The country used for "Where to watch": the one set in your Trakt settings.
+  country() {
+    return this.memo('country', async () => {
+      const s = await this.settings();
+      return ((s.browsing && s.browsing.watchnow && s.browsing.watchnow.country) || 'us').toLowerCase();
+    }, 3600000);
+  }
+
+  async watchNow(item) {
+    const country = await this.country();
+    const data = await this.memo(`watch:${this.path(item)}:${country}`, () => this.call(`${this.path(item)}/watchnow/${country}?links=direct`), 600000);
+    return data[country] || data[country.toUpperCase()] || Object.values(data)[0] || {};
+  }
+
+  favorites() {
+    return this.memo('favorites', async () => {
+      const lists = await Promise.all(['movies', 'shows'].map((t) => this.call(`/sync/favorites/${t}/rank/asc`).catch(() => [])));
+      return new Set(lists.flat().filter((r) => r.movie || r.show).map((r) => (r.movie ? 'movie:' + r.movie.ids.trakt : 'show:' + r.show.ids.trakt)));
+    }, 300000);
+  }
+
+  async setFavorite(item, on) {
+    await this.call('/sync/favorites' + (on ? '' : '/remove'), 'POST', this.body(item));
+    this.memos.delete('favorites');
   }
 
   // ---- episodes ----

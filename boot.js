@@ -1,6 +1,6 @@
 /* boot.js: loads the screen files, then the script files in order, then the app starts. */
 (function () {
-  const REV = '0.4.0-r1'; // change this whenever files change, so a phone never mixes old and new files
+  const REV = '0.5.0-r1'; // change this whenever files change, so a phone never mixes old and new files
   const VIEWS = [
     ['screens', 'views/shell/header.html'], ['screens', 'views/shell/tabs.html'],
     ['screens', 'views/screens/login.html'], ['screens', 'views/screens/home.html'], ['screens', 'views/screens/lists.html'],
