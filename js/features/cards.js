@@ -12,8 +12,8 @@ class Cards {
     if (badge) poster.append(el('span', badge, 'badge'));
     const meta = [];
     if (!layout.hideYear && media.year) meta.push(media.year);
-    if (!layout.hideRating && item.rating) meta.push('★ ' + item.rating);
-    else if (!layout.hideRating && media.rating) meta.push('★ ' + media.rating.toFixed(1));
+    if (!layout.hideRating && item.rating) meta.push('★ ' + stars5(item.rating));
+    else if (!layout.hideRating && media.rating) meta.push('★ ' + Math.round(media.rating * 10) + '%');
     const info = el('div', undefined, 'info');
     info.append(el('div', media.title || 'Unknown', 't'), el('div', meta.join(' · '), 'm'));
     card.append(poster, info);

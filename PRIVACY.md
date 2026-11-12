@@ -14,6 +14,7 @@ None of this is sent to the developer. **Log out** removes your login tokens at 
 
 ## Who the app talks to
 - **Trakt** (trakt.tv, api.trakt.tv): you log in on Trakt's own page. The app then reads and changes your history, watchlist, ratings and custom lists on your behalf. Titles, posters and details come from Trakt. Trakt's own terms and privacy policy apply to that data.
+- **Your browser**: the trailer, official site, IMDb, TMDB and Trakt links open in your browser only when you tap them. Those sites' own policies apply.
 - **Simkl and AniList**: not used in this version. This policy will be updated before they are added.
 
 ## Your choices

@@ -64,7 +64,7 @@ class ListScreen {
       if (inc.some((g) => !genres.includes(g)) || exc.some((g) => genres.includes(g))) return false;
       if (f.yFrom && !(m.year >= +f.yFrom)) return false;
       if (f.yTo && !(m.year <= +f.yTo)) return false;
-      if (f.minRating && !((m.rating || 0) >= +f.minRating)) return false;
+      if (f.minRating && !((m.rating || 0) * 10 >= +f.minRating)) return false;
       return true;
     });
     const title = (i) => mediaOf(i).title || '';
@@ -94,7 +94,7 @@ class ListScreen {
     const body = $('listBody');
     body.className = 'lay-' + this.layout.type;
     body.style.setProperty('--cols', this.layout.cols);
-    body.replaceChildren(...list.slice(0, this.pages * ListScreen.PAGE).map((i) => Cards.build(i, this.layout, (it) => this.app.itemSheet.open(it))));
+    body.replaceChildren(...list.slice(0, this.pages * ListScreen.PAGE).map((i) => Cards.build(i, this.layout, (it) => this.app.detail.open(it))));
     if (!list.length) body.append(el('p', 'Nothing here yet.', 'muted'));
     $('listMore').hidden = list.length <= this.pages * ListScreen.PAGE;
   }

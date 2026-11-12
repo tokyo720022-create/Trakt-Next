@@ -11,9 +11,11 @@ Built with plain JavaScript wrapped in [Capacitor](https://capacitorjs.com). No 
 | Home | Continue Watching (tick the next episode), Start Watching (your watchlist), daily streak, Calendar, Recommended, History. Switch between Media, Anime, Shows and Movies |
 | Anime / Shows / Movies | Your list with status chips (All, Watched, Watchlist, Rated), Search, Filter, Customise and Custom lists |
 | Discover | Trending, Popular, Anticipated, For you and search |
+| Title screen | Tap any title: poster with Watched badge, rating, Watched / Watchlist / Trailer / More, 5-star rating, overview, Episodes with a tick on every episode (shows), Actors, Reviews (Popular / Recent), Related, Popular Lists, Details with stats and links |
+| History | Everything you watched, grouped by day, with Media / Anime / Shows / Movies chips and Remove from history |
 | Profile | Account, counts per section, sync routes, log out |
 
-Tap any title to change it on Trakt: watchlist, watched (movies), rating, add to a custom list. Anime is any title Trakt gives the `anime` genre.
+On the title screen you can change a title on Trakt: watched, watchlist, rating, episodes, add to a custom list. Anime is any title Trakt gives the `anime` genre.
 
 ## Sync routes
 
@@ -27,15 +29,16 @@ Trakt works now. Simkl and AniList are not connected yet.
 
 ## Status
 
-Version 0.2.
+Version 0.3.
 
 - [x] Log in with Trakt (OAuth with PKCE, no client secret)
 - [x] Home, section lists, Discover, Profile
 - [x] Search, Filter, Customise, Custom lists
-- [x] Watchlist, watched, rating, custom list changes sent to Trakt
+- [x] Title screen, History, episode-by-episode tracking
+- [x] Watchlist, watched, rating, episode and custom list changes sent to Trakt
 - [ ] Simkl login and sync
 - [ ] AniList login and sync
-- [ ] Episode-by-episode tracking inside a show
+- [ ] Favorites, reactions, Where to Watch (not in the public Trakt API as far as known)
 - [ ] Offline queue for changes that could not be sent
 
 ## Project structure
@@ -49,11 +52,11 @@ css/                 base.css, components.css, screens.css
 views/
   shell/             header, tabs
   screens/           login, home, lists, discover, profile
-  sheets/            filter, customise, customlists, streak, item
+  sheets/            filter, customise, customlists, streak, history, detail
 js/
   core/              core, auth, trakt, tabs, start
-  features/          cards, lists, list-options, customlists, item-sheet,
-                     discover, streak, home, profile
+  features/          cards, lists, list-options, customlists, detail, detail-extras,
+                     episodes, history, discover, streak, home, profile
 index.html
 boot.js
 package.json

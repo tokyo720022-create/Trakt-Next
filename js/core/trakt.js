@@ -172,4 +172,45 @@ class TraktApi {
       return { shows, movies };
     });
   }
+
+  // ---- title details ----
+  idOf(item) { return mediaOf(item).ids.trakt; }
+  path(item) { return `/${item.type}s/${this.idOf(item)}`; }
+  summary(item) { return this.memo('sum:' + this.path(item), () => this.call(`${this.path(item)}?${TraktApi.EXT}`), 600000); }
+  stats(item) { return this.memo('stats:' + this.path(item), () => this.call(`${this.path(item)}/stats`), 600000); }
+  people(item) { return this.memo('people:' + this.path(item), () => this.call(`${this.path(item)}/people?extended=images`), 600000); }
+  studios(item) { return this.memo('studios:' + this.path(item), () => this.call(`${this.path(item)}/studios`), 600000); }
+  popularLists(item) { return this.memo('lists:' + this.path(item), () => this.call(`${this.path(item)}/lists/popular?limit=8`), 600000); }
+  comments(item, kind) { return this.memo(`cm:${kind}:${this.path(item)}`, () => this.call(`${this.path(item)}/comments/${kind}?limit=10`), 300000); }
+  async related(item) {
+    const raw = await this.memo('rel:' + this.path(item), () => this.call(`${this.path(item)}/related?${TraktApi.EXT}&limit=12`), 600000);
+    return raw.map((m) => ({ type: item.type, [item.type]: m }));
+  }
+
+  // ---- episodes ----
+  seasons(show) { return this.memo('seasons:' + show.ids.trakt, () => this.call(`/shows/${show.ids.trakt}/seasons?extended=full,episodes,images`), 600000); }
+  showProgress(show) { return this.call(`/shows/${show.ids.trakt}/progress/watched`); }
+
+  async setEpisode(show, episode, on) {
+    await this.call('/sync/history' + (on ? '' : '/remove'), 'POST', { episodes: [{ ids: { trakt: episode.ids.trakt } }] });
+    this.memos.delete('recent');
+    this.memos.delete('activity');
+    if (on) (await this.tracked({ type: 'show', show })).flags.watched = true;
+  }
+
+  async setSeason(show, season, on) {
+    await this.call('/sync/history' + (on ? '' : '/remove'), 'POST', { seasons: [{ ids: { trakt: season.ids.trakt } }] });
+    this.memos.delete('recent');
+    this.memos.delete('activity');
+    if (on) (await this.tracked({ type: 'show', show })).flags.watched = true;
+  }
+
+  // ---- history ----
+  history(page = 1, limit = 40) { return this.call(`/sync/history?${TraktApi.EXT}&page=${page}&limit=${limit}`); }
+
+  async removeHistory(id) {
+    await this.call('/sync/history/remove', 'POST', { ids: [id] });
+    this.memos.delete('recent');
+    this.memos.delete('activity');
+  }
 }

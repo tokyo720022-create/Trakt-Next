@@ -71,3 +71,15 @@ function dayLabel(iso, now = new Date()) {
   if (dateKey(d) === dateKey(yesterday)) return 'Yesterday';
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
+
+// Trakt ratings go from 1 to 10; the app shows them as 5 stars like the Trakt app (10 = 5 stars).
+const stars5 = (rating) => String(rating / 2);
+const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '');
+const fmtRuntime = (min) => (min ? `${Math.floor(min / 60) ? Math.floor(min / 60) + 'h ' : ''}${min % 60}m` : '');
+const compact = (n) => (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n || 0));
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+function openLink(url) {
+  const Browser = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser;
+  if (Browser) Browser.open({ url }); else window.open(url, '_blank');
+}

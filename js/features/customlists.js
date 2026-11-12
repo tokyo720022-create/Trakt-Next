@@ -39,7 +39,7 @@ class CustomLists {
       const layout = this.app.lists.layout;
       const grid = el('div', undefined, 'lay-' + layout.type);
       grid.style.setProperty('--cols', layout.cols);
-      items.forEach((i) => grid.append(Cards.build(i, layout, (it) => this.app.itemSheet.open(it))));
+      items.forEach((i) => grid.append(Cards.build(i, layout, (it) => this.app.detail.open(it))));
       box.replaceChildren(items.length ? grid : el('p', 'This list is empty.', 'muted'));
     } catch (err) { box.replaceChildren(el('p', 'Could not load this list: ' + err.message, 'muted')); }
   }

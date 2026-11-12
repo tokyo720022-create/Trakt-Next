@@ -9,7 +9,8 @@ class App {
     this.current = 'home';
     this.lists = new ListScreen(this);
     this.customLists = new CustomLists(this);
-    this.itemSheet = new ItemSheet(this);
+    this.detail = new DetailScreen(this);
+    this.history = new HistoryScreen(this);
     this.discover = new DiscoverScreen(this);
     this.streak = new StreakSheet(this);
     this.home = new HomeScreen(this);
@@ -20,7 +21,10 @@ class App {
     $('loginBtn').onclick = () => this.auth.startLogin();
     $('logoutBtn').onclick = () => { this.auth.logout(); this.trakt.reset(); this.current = 'home'; this.render(); };
     const cap = window.Capacitor && window.Capacitor.Plugins;
-    if (cap && cap.App) cap.App.addListener('appUrlOpen', ({ url }) => this.onLink(url));
+    if (cap && cap.App) {
+      cap.App.addListener('appUrlOpen', ({ url }) => this.onLink(url));
+      cap.App.addListener('backButton', () => this.back(cap.App));
+    }
     this.render();
   }
 
@@ -29,6 +33,14 @@ class App {
     const cap = window.Capacitor && window.Capacitor.Plugins;
     try { if (cap && cap.Browser) await cap.Browser.close(); } catch (e) { /* nothing to close */ }
     try { if (await this.auth.handleCallback(url)) this.render(); } catch (err) { this.render('Login failed: ' + err.message); }
+  }
+
+  // The phone's back button closes the top sheet, then goes Home, then leaves the app.
+  back(capApp) {
+    const open = [...document.querySelectorAll('#overlays .sheet')].filter((s) => !s.hidden);
+    if (open.length) { open[open.length - 1].querySelector('.sheethead .mini').click(); return; }
+    if (this.auth.isLoggedIn && this.current !== 'home') { this.tabs.select('home'); return; }
+    if (capApp && capApp.exitApp) capApp.exitApp();
   }
 
   showOnly(id) { document.querySelectorAll('#screens > section').forEach((s) => { s.hidden = s.id !== id; }); }

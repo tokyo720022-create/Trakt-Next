@@ -21,6 +21,7 @@ class HomeScreen {
     };
     $('hCalKinds').onclick = (e) => { const b = e.target.closest('.chip'); if (b) { this.calChip = b.dataset.k; this.paint(); this.drawCalendar(); } };
     $('hStreak').onclick = () => app.streak.open(this.dates);
+    $('hHistLink').onclick = () => app.history.open();
   }
 
   paint() {
@@ -92,7 +93,7 @@ class HomeScreen {
       const tick = el('button', '✓', 'tick');
       tick.setAttribute('aria-label', 'Mark the next episode as watched');
       tick.onclick = () => this.watchNext(r, tick);
-      return this.card({ thumb: thumbOf(r.show), title: r.show.title, sub: this.episodeLine(r.next), badge: `${r.left} left`, onTap: () => this.app.itemSheet.open({ type: 'show', show: r.show }), action: tick });
+      return this.card({ thumb: thumbOf(r.show), title: r.show.title, sub: this.episodeLine(r.next), badge: `${r.left} left`, onTap: () => this.app.detail.open({ type: 'show', show: r.show }), action: tick });
     }), 'Nothing in progress.');
   }
 
@@ -111,13 +112,13 @@ class HomeScreen {
   drawStart() {
     const rows = this.lib.filter((i) => i.flags.watchlist && !i.flags.watched && this.inKind(i))
       .sort((a, b) => (b.when || '').localeCompare(a.when || '')).slice(0, 20);
-    this.fill('hStart', rows.map((i) => this.card({ thumb: thumbOf(mediaOf(i)), title: mediaOf(i).title, sub: String(mediaOf(i).year || ''), onTap: () => this.app.itemSheet.open(i) })),
+    this.fill('hStart', rows.map((i) => this.card({ thumb: thumbOf(mediaOf(i)), title: mediaOf(i).title, sub: String(mediaOf(i).year || ''), onTap: () => this.app.detail.open(i) })),
       'Your watchlist is empty. Add titles from Discover.');
   }
 
   drawCalendar() {
     const d = this.calendarData;
-    const open = (item) => () => this.app.itemSheet.open(item);
+    const open = (item) => () => this.app.detail.open(item);
     let nodes;
     if (this.kind === 'movies') {
       nodes = d.movies.map((m) => this.card({ thumb: thumbOf(m.movie), title: m.movie.title, sub: 'Movie', badge: this.shortDate(m.released), onTap: open({ type: 'movie', movie: m.movie }) }));
@@ -139,7 +140,7 @@ class HomeScreen {
   shortDate(iso) { return iso ? new Date(iso).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' }) : ''; }
 
   drawRec() {
-    this.fill('hRec', this.rec.slice(0, 20).map((i) => this.card({ thumb: thumbOf(mediaOf(i)), title: mediaOf(i).title, sub: String(mediaOf(i).year || ''), onTap: () => this.app.itemSheet.open(i) })), 'No recommendations yet.');
+    this.fill('hRec', this.rec.slice(0, 20).map((i) => this.card({ thumb: thumbOf(mediaOf(i)), title: mediaOf(i).title, sub: String(mediaOf(i).year || ''), onTap: () => this.app.detail.open(i) })), 'No recommendations yet.');
   }
 
   drawHistory() {
@@ -149,8 +150,8 @@ class HomeScreen {
       const stars = this.app.trakt.ratingOf(r);
       return this.card({
         thumb: thumbOf(media), title: media.title, sub: r.type === 'episode' ? this.episodeLine(r.episode) : 'Movie',
-        badge: dayLabel(r.watched_at), onTap: () => this.app.itemSheet.open(this.asTitle(r)),
-        action: stars ? el('span', '★ ' + stars, 'star') : null,
+        badge: dayLabel(r.watched_at), onTap: () => this.app.detail.open(this.asTitle(r)),
+        action: stars ? el('span', '★ ' + stars5(stars), 'star') : null,
       });
     }), 'No history yet.');
   }

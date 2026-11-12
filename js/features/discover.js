@@ -44,7 +44,7 @@ class DiscoverScreen {
       const items = this.query ? await this.app.trakt.search(this.query, this.kind) : await this.app.trakt.discover(this.mode, this.kind, this.page);
       if (seq !== this.seq) return;
       if (first) list.replaceChildren();
-      items.forEach((i) => list.append(Cards.build(i, this.app.lists.layout, (it) => this.app.itemSheet.open(it))));
+      items.forEach((i) => list.append(Cards.build(i, this.app.lists.layout, (it) => this.app.detail.open(it))));
       if (first && !items.length) list.append(el('p', 'Nothing found.', 'muted'));
       $('dmore').hidden = Boolean(this.query) || !items.length;
       this.page++;
